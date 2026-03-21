@@ -3,7 +3,7 @@
 
 /* Use the first pin for sign of life */
 #define OUTPUT_GPIO_SQUAREWAVE_PORT GPIOA
-#define OUTPUT_GPIO_SQUAREWAVE_PIN  GPIO1   /* PA1 */
+#define OUTPUT_GPIO_SQUAREWAVE_PIN  GPIO9   /* PA1 */
 
 static void clock_setup(void) {
     /* Configure system clock to 48 MHz using 8 MHz external crystal.

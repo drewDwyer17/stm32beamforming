@@ -3,7 +3,7 @@ PROJECT = stm32beamforming
 SHARED_DIR = ../common
 CFILES += src/main.c 
 
-DEVICE = stm32f030c8 
+DEVICE = stm32f030c8
 
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)

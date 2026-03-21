@@ -1,5 +1,4 @@
 PROJECT = stm32beamforming
-BUILD_DIR = /build
 
 SHARED_DIR = ../common
 CFILES += src/main.c 

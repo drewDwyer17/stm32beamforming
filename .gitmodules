@@ -1,3 +1,9 @@
 [submodule "libopencm3"]
 	path = libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
+[submodule "stm32f0_svd"]
+	path = stm32f0_svd
+	url = https://github.com/modm-io/cmsis-svd-stm32.git
+[submodule "debugger/cortex-debug"]
+	path = debugger/cortex-debug
+	url = https://github.com/Marus/cortex-debug.git

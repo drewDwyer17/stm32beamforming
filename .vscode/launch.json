@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (J-Link, STM32F030C8)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/app/stm32beamforming.elf",
+            "servertype": "jlink",
+            "serverpath": "C:\\Program Files\\SEGGER\\JLink_V928\\JLinkGDBServerCL.exe",
+            "device": "STM32F030C8",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/debugger/stm32f0_svd/stm32f0/STM32F0x0.svd"
+        }
+    ]
+}

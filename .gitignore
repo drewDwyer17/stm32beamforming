@@ -1,0 +1,4 @@
+app/bin/
+app/generated.stm32f030c8
+app/stm32beamforming.bin
+app/stm32beamforming.elf

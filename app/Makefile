@@ -1,8 +1,7 @@
 PROJECT = stm32beamforming
-BUILD_DIR = bin
+BUILD_DIR = /build
 
 SHARED_DIR = ../common
-CFILES += src/ourPlaceholder.c 
 CFILES += src/main.c 
 
 DEVICE = stm32f030c8 
@@ -11,7 +10,7 @@ DEVICE = stm32f030c8
 VPATH += $(SHARED_DIR)
 INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))
 OPENCM3_DIR=../libopencm3
-OPENCM3_DEFS = -DSTM32F4
+OPENCM3_DEFS = -DSTM32F0
 
 include $(OPENCM3_DIR)/mk/genlink-config.mk
 include ../rules.mk

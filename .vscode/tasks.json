@@ -1,3 +1,24 @@
+// {
+//     "version": "2.0.0",
+//     "tasks": [
+//         {
+//             "label": "make",
+//             "type": "shell",
+//             "command": "make",
+//             "options": {
+//                 "cwd": "${workspaceFolder}/app",
+//                 "shell": {
+//                     "executable": "C:\\msys64\\msys2_shell.cmd",
+//                 }
+//             },
+//             "group": {
+//                 "kind": "build",
+//                 "isDefault": true
+//             },
+//             "problemMatcher": []
+//         }
+//     ]
+// }
 {
     "version": "2.0.0",
     "tasks": [
@@ -7,9 +28,13 @@
             "command": "make",
             "options": {
                 "cwd": "${workspaceFolder}/app",
+                "env": {
+                    "CHERE_INVOKING": "1",
+                    "MSYSTEM": "MINGW64"
+                },
                 "shell": {
-                    "executable": "C:\\msys64\\msys2_shell.cmd",
-                    "args": ["-mingw64", "-defterm", "-here", "-no-start"]
+                    "executable": "C:\\msys64\\usr\\bin\\bash.exe",
+                    "args": ["-lc"]
                 }
             },
             "group": {

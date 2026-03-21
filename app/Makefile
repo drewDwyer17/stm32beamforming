@@ -1,3 +1,4 @@
+BUILD_DIR = build
 PROJECT = stm32beamforming
 
 SHARED_DIR = ../common
@@ -15,6 +16,12 @@ include $(OPENCM3_DIR)/mk/genlink-config.mk
 include ../rules.mk
 include $(OPENCM3_DIR)/mk/genlink-rules.mk
 
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+all: $(BUILD_DIR) $(PROJECT).elf
+	mv $(PROJECT).elf $(BUILD_DIR)/
+	mv $(PROJECT).bin $(BUILD_DIR)/
 
 
 ##from the makerules. mkrules expects these to be in the current make file: 

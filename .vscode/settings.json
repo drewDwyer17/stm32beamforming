@@ -9,7 +9,7 @@
         }
     },
     "terminal.integrated.defaultProfile.windows": "Git Bash",
-    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+    "C_Cpp.default.compilerPath": "C:\\arm-gnu-toolchain-15.2.rel1-mingw-w64-x86_64-arm-none-eabi\\bin\\arm-none-eabi-gcc.exe",
     "cortex-debug.JLinkGDBServerPath": "C:\\Program Files\\SEGGER\\JLink\\JLinkGDBServerCL.exe"
     
 }

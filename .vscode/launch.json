@@ -5,14 +5,15 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Debug (J-Link, STM32F030C8)",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/app",
             "executable": "${workspaceFolder}/app/stm32beamforming.elf",
             "servertype": "jlink",
             "serverpath": "C:\\Program Files\\SEGGER\\JLink_V928\\JLinkGDBServerCL.exe",
             "device": "STM32F030C8",
             "interface": "swd",
             "runToEntryPoint": "main",
-            "preLaunchTask": "build",
+            "preLaunchTask": "make",
+            "gdbPath": "C:\\arm-gnu-toolchain-15.2.rel1-mingw-w64-x86_64-arm-none-eabi\\bin\\arm-none-eabi-gdb",
             "svdFile": "${workspaceFolder}/debugger/stm32f0_svd/stm32f0/STM32F0x0.svd"
         }
     ]

@@ -4,25 +4,17 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "C:\\msys64\\usr\\bin\\make.exe",
+            "command": "make",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/app",
+                "shell": {
+                    "executable": "C:\\msys64\\msys2_shell.cmd",
+                    "args": ["-mingw64", "-defterm", "-here", "-no-start"]
+                }
             },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "make clean",
-            "type": "shell",
-            "command": "C:\\msys64\\usr\\bin\\make.exe",
-            "args": [
-                "clean"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
         }

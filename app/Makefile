@@ -3,8 +3,12 @@ PROJECT = stm32beamforming
 
 SHARED_DIR = ../common
 CFILES += src/main.c 
+
 CFILES += src/signalMgr.c
+CFILES += src/phaseShifter.c
 HFILES += include/SignalMgr.h
+HFILES += include/PhaseShifter.h
+
 
 DEVICE = stm32f030c8
 

@@ -8,10 +8,11 @@
 
 int main(void) 
 {
-    rcc_clock_setup_in_hse_8mhz_out_48mhz();
-    rcc_periph_clock_enable(RCC_GPIOA);
     while (1)
     {
+        
+        rcc_clock_setup_in_hse_8mhz_out_48mhz();
+        rcc_periph_clock_enable(RCC_GPIOA);
         SignOfLifeSignalAtMaximumSpeed(SIGNOFLIFEPORT, SIGNOFLIFEPIN);
     }
     return 0;

@@ -3,12 +3,15 @@ PROJECT = stm32beamforming
 
 SHARED_DIR = ../common
 CFILES += src/main.c 
+CFILES += src/signalMgr.c
+HFILES += include/SignalMgr.h
 
 DEVICE = stm32f030c8
 
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)
 INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))
+INCLUDES += -Iinclude
 OPENCM3_DIR=../libopencm3
 OPENCM3_DEFS = -DSTM32F0
 

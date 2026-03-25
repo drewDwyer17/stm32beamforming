@@ -3,6 +3,19 @@
 // that will be sent serial from our MCU to the phase shifting chip (...), using a SPI communication interface.
 // //
 
+
+//usage
+// double requestedShift_deg = 33;
+// BuildPhaseShiftCmd(requestedShift_deg, 1, 1, &shiftRequest);
+
+//initializes the rc, etc, and the other parts
+// BuildPhaseShiftCmd(requestShift_deg, optBit, &newReq) //use input degree to calculate a command. Populate the structure and then return it
+//as the return of the function to the newReq that you initialized
+
+// SendCmdAsSpi(newReq->phaseShiftCmd) {
+//here we will use spi commands that we have defined to actually communicate the command created
+// }
+
 #ifndef PHASESHIFTER_H
 #define PHASESHIFTER_H
 
@@ -26,6 +39,7 @@ typedef enum {
     Err_PShiftWord,
     Err_OptBit,
     Err_CmdLength,
+    Err_CmdChksum, //if length is off, the checksum is too. but length is quicker check? 
     Err_UnitAddWord,
     Err_NoSuchState,
     Err_ShiftOutOfRange,
@@ -40,7 +54,8 @@ typedef struct PackedPhaseShiftCmd_t {
 } PackedPhaseShiftCmd_t;
 
 //structure to keep all the members required to create a command interpretable by the phase shifter.
-//command structure used is defined in the PS datasheet: https://www.mouser.ca/ProductDetail/pSemi/PE44820B-X?qs=Cb2nCFKsA8prCrkfl5FDIQ%3D%3D
+//command structure used is defined in the PS datasheet:
+ https://www.mouser.ca/ProductDetail/pSemi/PE44820B-X?qs=Cb2nCFKsA8prCrkfl5FDIQ%3D%3D
 
 typedef struct PhaseShiftRequest_t {
     double requestedShift_deg;
@@ -130,17 +145,6 @@ static inline PackedPhaseShiftCmd_t PackPhaseShiftCmdFromString(const char *phas
     return result;
 }
 
-//usage
-// double requestedShift_deg = 33;
-// BuildPhaseShiftCmd(requestedShift_deg, 1, 1, &shiftRequest);
-
-//initializes the rc, etc, and the other parts
-// BuildPhaseShiftCmd(requestShift_deg, optBit, &newReq) //use input degree to calculate a command. Populate the structure and then return it
-//as the return of the function to the newReq that you initialized
-
-// SendCmdAsSpi(newReq->phaseShiftCmd) {
-//here we will use spi commands that we have defined to actually communicate the command created
-// }
 
 //main API
 

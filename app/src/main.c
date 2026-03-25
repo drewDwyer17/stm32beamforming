@@ -48,7 +48,7 @@ int main(void)
     spi_set_baudrate_prescaler(SPI1, SPI_CR1_BR_FPCLK_DIV_256);  // note sure which clk division to use
     spi_set_clock_polarity_0(SPI1);
     spi_set_clock_phase_0(SPI1);
-    spi_send_msb_first(SPI1);
+    spi_send_lsb_first(SPI1);
     spi_enable_software_slave_management(SPI1);
     spi_set_nss_high(SPI1);
     spi_enable(SPI1); 
@@ -56,7 +56,7 @@ int main(void)
     while (1)
     {
         //depending on if we want to transmit on rising or falling edge of signal, change 
-        // the transition parameter, need to review the data sheet
+        // the transition paraSmeter, need to review the data sheet
         //make sure to send 
         //think that maybe thelock source decision will preconfigure the 
         //timing for the spi

@@ -6,10 +6,10 @@
 
 //usage
 // double requestedShift_deg = 33;
-// BuildPhaseShiftCmd(requestedShift_deg, 1, 1, &shiftRequest);
+// PhaseShiftRequest_t newreq;
 
 //initializes the rc, etc, and the other parts
-// BuildPhaseShiftCmd(requestShift_deg, optBit, &newReq) //use input degree to calculate a command. Populate the structure and then return it
+// BuildPhaseShiftCmd(requestShift_deg, optBit, *newReq) //use input degree to calculate a command. Populate the structure and then return it
 //as the return of the function to the newReq that you initialized
 
 // SendCmdAsSpi(newReq->phaseShiftCmd) {
@@ -51,8 +51,7 @@ typedef enum {
 typedef struct PackedPhaseShiftCmd_t {
     char cmdString[14];    // this is the command we build from inputs 
      uint16_t packedCmd;   //this is the binary version we can actually send 
-     uint16_t SPI1_TXCRCR; ; //use the CRC appending capability. we;ll compute the CRC after we pack the command on the packedCmd, and store it here, and then append it to the command. and packedCmd = packedCmd +CRC  // 
-
+     uint16_t packedCmdChksum; ; 
 } PackedPhaseShiftCmd_t;
 
 //structure to keep all the members required to create a command interpretable by the phase shifter.
@@ -66,11 +65,12 @@ typedef struct PhaseShiftRequest_t {
     bool optBit;  // each cmd takes an opt bit
     uint8_t unitAddressWord; //4 bits
     //  SPI1_TXCRCR; going to be enabled as our automatic 
-    //checksum mechanism 
+    //CRC mechanism 
     
     // 13 bits for the full, phase shift cmd, of structure [PhaseSettingWord][optBit][unitAddressWord]
     char phaseShiftCmdString[14];  // full 13 bit cmd as a string for printing (before CRC)
-    PackedPhaseShiftCmd_t packedPhaseShiftCmd; 
+    PackedPhaseShiftCmd_t packedPhaseShiftCmd;
+    uint16_t phaseShifterResponse; //to see what we get back on miso line 
     PhaseShiftMgr_Error_t rc; //return code to see any errors during cmd population
 
 } PhaseShiftRequest_t;
@@ -84,9 +84,11 @@ static inline PhaseShiftRequest_t InitNewPhaseShiftRequest(void)
     req.phaseSettingWord[0] = '\0';
     req.optBit = 0;
     req.unitAddressWord = 0;
-    // req.SPI1_TXCRCR == NULL; / append the crc as last bit of tx. Stm32 SPI1 supports "CRC" mode
+    // / append the crc as last bit of tx. Stm32 SPI1 supports "CRC" mode
     req.packedPhaseShiftCmd.cmdString[0] = '\0';
     req.packedPhaseShiftCmd.packedCmd =0;//the string we've build doesn't contain the real command, we need to pack it into binary req.phasShiftCmd
+    req.packedPhaseShiftCmd.packedCmdChksum=0; 
+    req.phaseShifterResponse = 0;
 
     req.rc = Err_Ok;  // a phase shift cmd of all 0 (L)
                     // creates a shift request of 0 relative to the reference phase
@@ -106,6 +108,8 @@ static inline void ResetPhaseShiftRequest(PhaseShiftRequest_t *reqToClear)
     reqToClear->unitAddressWord = 0; 
     reqToClear->packedPhaseShiftCmd.cmdString[0] = '\0';
     reqToClear->packedPhaseShiftCmd.packedCmd =0;
+    reqToClear->packedPhaseShiftCmd.packedCmdChksum= 0 ; 
+    reqToClear->phaseShifterResponse = 0;
 
     reqToClear->rc = Err_Ok;
 }
@@ -130,6 +134,7 @@ static inline PackedPhaseShiftCmd_t PackCmdStringintoCmd(const char *phaseSettin
 
     newCmd.packedCmd = 0;
     newCmd.cmdString[0] = '\0';
+    newCmd.packedCmdChksum=0; 
 
     // e.g., convert each character in ASCII "01001001" (LSB → MSB)to binary equivalent
     for (int i = 7; i >= 0; i--) {
@@ -152,6 +157,9 @@ static inline PackedPhaseShiftCmd_t PackCmdStringintoCmd(const char *phaseSettin
         newCmd.cmdString[12 - i] = (newCmd.packedCmd & (1u << i)) ? '1' : '0';
     }
    newCmd.cmdString[13] = '\0';
+
+
+   //calculate the checksum here 
 
 
     return newCmd;

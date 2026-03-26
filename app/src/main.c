@@ -59,39 +59,44 @@ int main(void)
 
     while (1)
     {
+
+        //intended flow 
+
+        setupSpi1(); 
+        PhaseShiftRequest_t req = InitNewPhaseShiftRequest(err);
+        double testShift = 205.3;
+        uint8_t optBit = 0;  
+        uint8_t unitAdrr = 3;
+
+        if (req.rc =! ok)
+        ResetPhaseShiftRequest(req);
+        BuildPhaseShiftCmd(degreesToShift, optBit, unitAdress, &req);
+        
+        printf(req->packedPhaseShiftCmdString) ; 
+        frame = req->PackedPhaseShiftCmd
+        
+        //caculate chksm to check later 
+        //not yet implemented
+
+        //now get ready to send
+        
+        gpio_clear(SPI1_PORT, SPI1_CS_PIN);
+        gpio_set(chipselectpinwewant); 
+        setupSpi1(); 
+        spi_send(SPI1, frame);
+        req-> PhaseShifterResponse = [] empty array 
+
+        //response reading loop, back into our structure. 
+        while (bytesToreceive) { 
+        phaseshifterResponse[bytesToRecieveIndex) = spi_read(SPI1);
+        index --
+        }
+        printf(req->phaseShifterResponse)
+        //compare response to what is expected 
+        Spi1Send(req-> packedPhaseShftCmdString, Spi1CRCTX 1) // to have last tx be CRC
+
         //depending on if we want to transmit on rising or falling edge of signal, change
         // the transition paraSmeter, need to review the data sheet
-        //make sure to send
-        //think that maybe thelock source decision will preconfigure the
-        //timing for the spi
-        // spi_set_clock_polarity_0(SPI1);
-        // spi_set_clock_phase_0(SPI1);
-        // spi_set_standard_mode(SPI1);
-
-        //----------------------------------------------------
-        // //now configure the command to send using our functions
-        // // now send?
-        // double degreesToShift = 45.0;
-        // bool optBit = 0;
-        // uint8_t unitAdress = 3;
-        // PhaseShiftMgr_Error_t rc;
-
-        // PhaseShiftRequest_t req = InitNewPhaseShiftRequest(err);
-
-        // if (req.rc =! ok)
-        // ResetPhaseShiftRequest(req);
-        // PackedPhaseShiftCmd_t PhaseShiftCommand = BuildPhaseShiftCmd(degreesToShift, optBit, unitAdress, &req);
-
-        // if (req.err = Et)
-        // //perform the CRC check on the command. Function for this isnt implemented
-
-        // //now we're ready to send it to the phaes shifter.
-        // send it byte by byte
-
-        // gpio_clear(SPI1_PORT, SPI1_CS_PIN);
-        // spi_send(SPI1, some_byte);
-        // (void)spi_read(SPI1);
-        // gpio_set(SPI1_PORT, SPI1_CS_PIN);
     }
 
     return 0;

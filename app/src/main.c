@@ -19,8 +19,9 @@
 #define SPI1_CLK_PIN   GPIO5 //clk line
 #define SPI1_MISO_PIN  GPIO6 //incoming response
 #define SPI1_MOSI_PIN  GPIO7 //phase shift request cmd
-#define SPI1_CS_PIN    GPIO4
-
+#define SPI1_CS_PIN    SPI1_CR1 //nss pin'//NSS output enable (SOEbit in register SPI1_CR1, set SSM-0, SSOE=1)
+//this configuration is used when MCU is master, NSS signal driven low when SPI enabled in master mode (SPE=1) and kept low until SPI disabled
+..
 void SPI1TransmitSetup(void) {
 
     //still haven't decided which source to clock SP1 from. it can use

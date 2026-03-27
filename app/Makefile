@@ -5,9 +5,9 @@ SHARED_DIR = ../common
 CFILES += src/main.c 
 
 CFILES += src/signalMgr.c
-CFILES += src/phaseShifter.c
+CFILES += src/phaseShiftMgr.c
 HFILES += include/SignalMgr.h
-HFILES += include/PhaseShifter.h
+HFILES += include/PhaseShiftMgr.h
 
 
 DEVICE = stm32f030c8

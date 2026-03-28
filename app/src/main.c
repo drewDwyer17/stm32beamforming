@@ -16,8 +16,10 @@
 #define SPI1_CLK_PIN   GPIO5 //clk line
 #define SPI1_MISO_PIN  GPIO6 //incoming response
 #define SPI1_MOSI_PIN  GPIO7 //phase shift request cmd
-#define SPI1_CS_PIN    GPIO0 //nss pin
-#define SPI1_PS_PIN //what pin? The CPOL (clock polarity) bit controls the idle state value of 
+#define SPI1_CS_PIN GPIO12 
+#define SP_PORT GPIOC
+#define SP_PIN GPIO10 //nss pin, going to use the S
+// #define SPI1_PS_PIN //what pin? The CPOL (clock polarity) bit controls the idle state value of 
 //the clock when no data is being transferred. If 
 //CPOL is reset, the SCK pin has a low-level idle state. If set, high 
 //this configuration is used when MCU is master, NSS signal driven manually with GPIO
@@ -27,6 +29,7 @@ void pe448spisetup(void)
     //enable the SPI
     rcc_periph_clock_enable(RCC_SPI1);
     rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_GPIOB);
 
     //set CS high to prevent data transfer during configuration
     gpio_set(SPI1_PORT, SPI1_CS_PIN);
@@ -39,7 +42,10 @@ void pe448spisetup(void)
 
     gpio_set_af(SPI1_PORT, GPIO_AF0, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
 
-        
+    gpio_mode_setup(SP_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SP_PIN); 
+
+    gpio_set(SP_PORT, SP_PIN); 
+
     gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer. " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
                                         // undesired data transmission might occur."
 
@@ -49,6 +55,7 @@ void pe448spisetup(void)
     spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_8, 0, 1, SPI_CR1_LSBFIRST); 
     spi_set_data_size(SPI1, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
 
+    spi_fifo
     spi_fifo_reception_threshold_16bit(SPI1); //make sure to capture all of the recieve bits 
     
 }

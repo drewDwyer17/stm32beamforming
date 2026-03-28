@@ -9,7 +9,7 @@ CFILES += src/phaseShiftMgr.c
 HFILES += include/PhaseShiftMgr.h
 
 
-DEVICE = stm32f030c8
+DEVICE = stm32f030r8t6
 
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)

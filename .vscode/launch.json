@@ -9,7 +9,7 @@
             "executable": "${workspaceFolder}/app/build/stm32beamforming.elf",
             "servertype": "jlink",
             "serverpath": "C:\\Program Files\\SEGGER\\JLink_V928\\JLinkGDBServerCL.exe",
-            "device": "STM32F030C8",
+            "device": "STM32F030R8",
             "interface": "swd",
             "runToEntryPoint": "main",
             "preLaunchTask": "make",

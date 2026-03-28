@@ -24,7 +24,6 @@
 
 void pe448spisetup(void)
 {
-
     //enable the SPI
     rcc_periph_clock_enable(RCC_SPI1);
     rcc_periph_clock_enable(RCC_GPIOA);
@@ -42,16 +41,15 @@ void pe448spisetup(void)
 
         
     gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer. " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
-// undesired data transmission might occur."
+                                        // undesired data transmission might occur."
 
     // // now set and enable SPI1 to use master mode and 
     //set the idle state of the clock Low for CPOL = 0 ( TRM "The idle state of SCK must correspond to the polarity selected in the SPIx_CR1 register (by 
-// pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
+    // pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
     spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, 0, 1, SPI_CR1_LSBFIRST); 
     spi_set_data_size(SPI1, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
 
     spi_fifo_reception_threshold_16bit(SPI1); //make sure to capture all of the recieve bits 
-
     
 }
 
@@ -77,14 +75,12 @@ int main(void)
         uint16_t frame; 
 
         frame = req.packedPhaseShiftCmd.packedCmdToSend;
-        
 
         //caculate chksm to checklater
         //not yet implemented
 
         //manual chip select active low
         gpio_clear(SPI1_PORT, SPI1_CS_PIN);
-
 
         //send the frame
         spi_send(SPI1, frame);
@@ -95,7 +91,6 @@ int main(void)
         //release chip select
         gpio_set(SPI1_PORT, SPI1_CS_PIN);
 
-        
         // validate response
         if (req.phaseShifterResponse != frame) {
             req.rc = Err_PSResponse;

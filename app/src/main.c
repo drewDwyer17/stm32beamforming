@@ -62,16 +62,15 @@ int main(void)
 
     pe448spisetup();
     spi_enable(SPI1);
+    double testPhaseShift = 205.3;
+    bool optBit = 0;
+    uint8_t unitAddr = 0b1100;   // = 3
+
+    SetPhaseShiftRequest(205.3, 0, 0b1100, &req);
 
     while (1)
     {
-        double testPhaseShift = 205.3;
-        bool optBit = 0b0;
-        uint8_t unitAddr = 0b0011;   // = 3
 
-        ClearPhaseShiftRequest(&req);
-        
-        SetPhaseShiftRequest(testPhaseShift, optBit, unitAddr, &req);
 
         if (req.rc != Err_Ok) continue; //builds a command and gives it to the req->packedPhaseShiftCmd structure
 
@@ -86,6 +85,7 @@ int main(void)
         gpio_clear(SPI1_PORT, SPI1_CS_PIN);
 
         //send the frame
+        //1001101000011
         spi_send(SPI1, frame);
 
         //read back the received word to clear RXNE / capture response

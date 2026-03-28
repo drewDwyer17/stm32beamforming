@@ -11,14 +11,23 @@
 // PA7 = MOSI
 
 //part 1
-//all SPI1 on same port
-#define SPI1_PORT      GPIOA
-#define SPI1_CLK_PIN   GPIO5 //clk line
-#define SPI1_MISO_PIN  GPIO6 //incoming response
-#define SPI1_MOSI_PIN  GPIO7 //phase shift request cmd
-#define SPI1_CS_PIN GPIO12 
-#define SP_PORT GPIOC
-#define SP_PIN GPIO10 //nss pin, going to use the S
+
+#define SPI1_LE_PORT GPIOB//treat the LE signal as the chip select 
+#define SPI1_LE_PIN GPIO12 
+
+#define SPI1_SP_PORT GPIOC
+#define SPI1_SP_PIN GPIO10
+
+#define SPI1_MISO_PORT GPIOC
+#define SPI1_MISO_PIN GPIO12//(SD01, d6 on PS side)
+
+#define SPI1_CLK_PORT GPIOB
+#define SPI1_CLK_PIN GPIO13
+
+#define SPI1_MOSI_PORT GPIOB
+#define SPI1_MOSI_PIN GPIO15
+
+
 // #define SPI1_PS_PIN //what pin? The CPOL (clock polarity) bit controls the idle state value of 
 //the clock when no data is being transferred. If 
 //CPOL is reset, the SCK pin has a low-level idle state. If set, high 
@@ -30,32 +39,33 @@ void pe448spisetup(void)
     rcc_periph_clock_enable(RCC_SPI1);
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
+    rcc_periph_clock_enable(RCC_GPIOC); 
 
-    //set CS high to prevent data transfer during configuration
-    gpio_set(SPI1_PORT, SPI1_CS_PIN);
 
-    //need to set the ps pin high for serial communication 
+    //need to set the PS SP pin HIGH for serial communication 
+    gpio_mode_setup(SPI1_SP_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI1_SP_PIN); 
+    gpio_set(SPI1_SP_PORT, SPI1_SP_PIN); //set SP high for serial communication 
 
     //now set the pin modes as outputs and AF as specified above
-    gpio_mode_setup(SPI1_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
-    gpio_mode_setup(SPI1_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI1_CS_PIN);
+    gpio_mode_setup(SPI1_CLK_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_CLK_PIN); 
+    gpio_mode_setup(SPI1_MISO_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_MISO_PIN); 
+    gpio_mode_setup(SPI1_MOSI_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_MOSI_PIN); 
 
-    gpio_set_af(SPI1_PORT, GPIO_AF0, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
+    gpio_mode_setup(SPI1_LE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI1_LE_PIN); //set latch enable (CS) as general output 
 
-    gpio_mode_setup(SP_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SP_PIN); 
+    //set CS high to prevent data transfer during configuration
+    gpio_set(SPI1_LE_PORT, SPI1_LE_PIN);
 
-    gpio_set(SP_PORT, SP_PIN); 
+    gpio_set_af(SPI1_CLK_PORT, GPIO_AF0, SPI1_CLK_PIN); 
+    gpio_set_af(SPI1_MOSI_PORT, GPIO_AF0, SPI1_MOSI_PIN); 
+    gpio_set_af(SPI1_MISO_PORT, GPIO_AF0, SPI1_MISO_PIN); 
 
-    gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer. " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
-                                        // undesired data transmission might occur."
-
+    //SDO1 phase shifter output is D6 of the PS schematic, need to map to MISO. D6 is mapped to PC12 MCU side
     // // now set and enable SPI1 to use master mode and 
     //set the idle state of the clock Low for CPOL = 0 ( TRM "The idle state of SCK must correspond to the polarity selected in the SPIx_CR1 register (by 
     // pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
     spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_8, 0, 1, SPI_CR1_LSBFIRST); 
     spi_set_data_size(SPI1, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
-
-    spi_fifo
     spi_fifo_reception_threshold_16bit(SPI1); //make sure to capture all of the recieve bits 
     
 }
@@ -68,7 +78,12 @@ int main(void)
     InitNewPhaseShiftRequest(&req); 
 
     pe448spisetup();
+
+    gpio_clear(SPI1_LE_PORT, SPI1_LE_PIN); //SET LOW FOR TX " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
+                                        // undesired data transmission might occur."
+
     spi_enable(SPI1);
+    
     double testPhaseShift = 205.3;
     bool optBit = 0;
     uint8_t unitAddr = 0b1100;   // = 3
@@ -88,9 +103,6 @@ int main(void)
         //caculate chksm to checklater
         //not yet implemented
 
-        //manual chip select active low
-        gpio_clear(SPI1_PORT, SPI1_CS_PIN);
-
         //send the frame
         //1001101000011
         spi_send(SPI1, frame);
@@ -99,7 +111,7 @@ int main(void)
         req.phaseShifterResponse = spi_read(SPI1); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
 
         //release chip select
-        gpio_set(SPI1_PORT, SPI1_CS_PIN);
+        gpio_set(SPI1_LE_PORT, SPI1_LE_PIN);
 
         // validate response
         if (req.phaseShifterResponse != frame) {

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define PE48820B_NUMSTATES 256u //maximum value 8 bits can take is 255 (11111111 in binary)
 #define PE48820B_MAX_PHASE_SHIFT_DEG 360.0
@@ -13,21 +14,21 @@
 typedef enum {
     Err_Ok, //processing path
     // Err_PShiftWord,
-    Err_OptBit,
+    // Err_OptBit,
     Err_NullPtr,
     // Err_CmdChksum, 
-    // Err_SpiCRC,
-    Err_UnitAddWord,
+    // // // Err_SpiCRC,
+    // Err_UnitAddWord,
     Err_NoSuchState,
     Err_ShiftOutOfRange,
-    Err_Count
+    // Err_Count
 } PhaseShiftMgr_Error_t;
 
-//helper function to convert the phaseState to a string for printing 
+//helper function to convert the phaseState to a string for printing LSB first
 static inline void ConvertBinaryToASCII(uint16_t phaseSetWord, char *out)
 {
-    for (int i = 7; i >= 0; i--) {
-        out[7 - i] = (phaseSetWord & (1u << i)) ? '1' : '0';
+    for (int i = 0; i < 8; i++) { 
+        out[i] = (phaseSetWord & (1u << i)) ? '1' : '0';
     }
     out[8] = '\0';
 }
@@ -101,7 +102,7 @@ static inline PhaseShiftMgr_Error_t ClearPhaseShiftRequest(PhaseShiftRequest_t *
 // Will take the requested phase shift as an input. Returns the fully
 // populated request. 
 
-//this is a helper function that is called in the main API 'createPhaseSHiftRequest" to pack the 
+//this is a helper function that is called in the main API 'createPhaseShiftRequest" to pack the 
 //provided inputs into a sendable command of the right format [phasesetword:8][opt:1][addrword:4]
 static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(PhaseShiftRequest_t *req)
 {
@@ -121,8 +122,8 @@ static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(PhaseShiftRequest_t 
         (req->unitAddressWord & 0x0Fu);
 
     //now store the command string for the same request so we can debug
-    for (int i = 12; i >= 0; i--) {
-        newPackedCmd.cmdString[12 - i] =
+    for (int i = 0; i <13; i++) {
+        newPackedCmd.cmdString[i] =
             (newPackedCmd.packedCmdToSend & (1u << i)) ? '1' : '0';
     }
 
@@ -134,25 +135,23 @@ static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(PhaseShiftRequest_t 
 }
 
 //main API to create a phase shift command given a requested shift relative to the reference signal phase
-static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_deg, bool optBit, uint8_t unitAddressWord, PhaseShiftRequest_t *newReq)
+static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_deg, bool optBit, uint8_t unitAddressWord, PhaseShiftRequest_t *req)
 {
-    if (newReq == NULL) {
-        PhaseShiftRequest_t err = InitNewPhaseShiftRequest();
-        err.rc = Err_NullPtr;
-        return err;
+    if (req == NULL) {
+        *req= InitNewPhaseShiftRequest(); 
     }
 
-    PhaseShiftRequest_t *req = newReq;
+    PhaseShiftRequest_t *newReq = req;
 
     //clear it and restart if there's something wrong 
-    if (req->rc != Err_Ok) {
-        ClearPhaseShiftRequest(req);
+    if (newReq->rc != Err_Ok) {
+        ClearPhaseShiftRequest(newReq);
     }
 
     //store the details of the request
-    req->requestedShift_deg = _requestedShift_deg;
-    req->optBit = optBit;
-    req->unitAddressWord = unitAddressWord;
+    newReq->requestedShift_deg = _requestedShift_deg;
+    newReq->optBit = optBit;
+    newReq->unitAddressWord = unitAddressWord;
 
     //begin the calculation of the state. State is calculated from input degrees
     //from PE448 datasheet: 
@@ -160,23 +159,23 @@ static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_de
     // 2. convert to binary state 146  → 01001001
     // LSB→MSB (205.3 deg setting = 2.8° + 22.5° + 180°)
     if (_requestedShift_deg < 0.0 || _requestedShift_deg >= 360.0) {
-        req->rc = Err_ShiftOutOfRange;
-        return *req;
+        newReq->rc = Err_ShiftOutOfRange;
+        return *newReq; //return early
     }
 
     //1. calculate the state
-    req->phaseSetWord = (uint16_t)(_requestedShift_deg * numStatesPerDegPhaseRotation);
+    newReq->phaseSetWord = (uint16_t)lround(_requestedShift_deg * numStatesPerDegPhaseRotation); //round up before truncating
 
     //max is 11111111
-    if (req->phaseSetWord > 255u) {
-        req->rc = Err_NoSuchState;
-        return *req;
+    if (newReq->phaseSetWord > 255u) {
+        newReq->rc = Err_NoSuchState;
+        return *newReq; //return early 
     }
 
     //convert phaseSetWord into an 8-bit binary string and store it starting at index 0 of PhaseSetWordStr
-    ConvertBinaryToASCII(req->phaseSetWord, req->PhaseSetWordStr);
+    ConvertBinaryToASCII(newReq->phaseSetWord, newReq->PhaseSetWordStr);
 
-    req->rc = BuildCommandfromRequest(req);
+    newReq->rc = BuildCommandfromRequest(newReq);
 
-    return *req;
+    return *newReq;
 }

@@ -4,9 +4,8 @@ PROJECT = stm32beamforming
 SHARED_DIR = ../common
 CFILES += src/main.c 
 
-CFILES += src/signalMgr.c
+CFILES += src/unitTests.c
 CFILES += src/phaseShiftMgr.c
-HFILES += include/SignalMgr.h
 HFILES += include/PhaseShiftMgr.h
 
 

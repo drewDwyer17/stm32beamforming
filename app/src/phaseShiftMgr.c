@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define PE48820B_NUMSTATES 256u //maximum value 8 bits can take is 255 (11111111 in binary)
 #define PE48820B_MAX_PHASE_SHIFT_DEG 360.0
@@ -26,15 +27,15 @@ typedef enum {
 } PhaseShiftMgr_Error_t;
 
 //helper function to convert the phaseState to a string for printing LSB first
-static inline void ConvertBinaryToASCII(uint16_t phaseSetWord, char *out)
+static inline void ConvertBinaryToASCII(uint16_t phaseSetWord, volatile char *out)
 {
-    for (int i = 0; i < 8; i++) { 
+    for (int i = 0; i < 9; i++) { 
         out[i] = (phaseSetWord & (1u << i)) ? '1' : '0';
     }
-    out[8] = '\0';
+    out[9] = '\0';
 }
 
-typedef struct PackedPhaseShiftCmd_t {
+typedef volatile struct PackedPhaseShiftCmd_t {
     char cmdString[14];  //create cmd string of binary chars
     uint16_t packedCmdToSend;   // pack into int to send over SPI1
     // uint16_t packedCmdChksum; 
@@ -50,9 +51,9 @@ typedef struct PackedPhaseShiftCmd_t {
 typedef struct PhaseShiftRequest_t {
     double requestedShift_deg;
     uint16_t phaseSetWord; //calculated from shift request
-    char PhaseSetWordStr[9];
+    char PhaseSetWordStr[8]; //include terminator 
     bool optBit;  //1 bit
-    uint8_t unitAddressWord; //4 bits
+    uint16_t unitAddressWord; //4 bits
     PackedPhaseShiftCmd_t packedPhaseShiftCmd; //a structure that contains full command to send via spi 
     uint16_t phaseShifterResponse;
     PhaseShiftMgr_Error_t rc; 
@@ -61,25 +62,24 @@ typedef struct PhaseShiftRequest_t {
 
 //for the first time in the loop, initialize a new structure. 
 // creates a shift request of all 0 (L) relative to the reference phase and returns the request structure 
-static inline PhaseShiftRequest_t InitNewPhaseShiftRequest(void) 
+static inline PhaseShiftMgr_Error_t InitNewPhaseShiftRequest(volatile PhaseShiftRequest_t *req) 
 {
-    PhaseShiftRequest_t req;
-    req.requestedShift_deg = 0.0;
-    req.phaseSetWord = 0;
-    req.PhaseSetWordStr[0] = '\0';
-    req.optBit = 0;
-    req.unitAddressWord = 0;
-    req.packedPhaseShiftCmd.cmdString[0] = '\0';
-    req.packedPhaseShiftCmd.packedCmdToSend =0;
+    req->requestedShift_deg = 0.0;
+    req->phaseSetWord = 0;
+    // req->PhaseSetWordStr;
+    req->optBit = 0;
+    req->unitAddressWord = 0;
+    req->packedPhaseShiftCmd.cmdString[0] = '\0';
+    req->packedPhaseShiftCmd.packedCmdToSend =0;
     // req.packedPhaseShiftCmd.packedCmdChksum=0; 
-    req.phaseShifterResponse = 0;
+    req->phaseShifterResponse = 0;
 
-    req.rc = Err_Ok;  
-    return req;
+    req->rc = Err_Ok;  
+    return req->rc; 
 }
 
 //for clearing/resetting a structure so we can reuse it 
-static inline PhaseShiftMgr_Error_t ClearPhaseShiftRequest(PhaseShiftRequest_t *reqToClear)
+static inline PhaseShiftMgr_Error_t ClearPhaseShiftRequest(volatile PhaseShiftRequest_t *reqToClear)
 {
     if (reqToClear == NULL) {
         return Err_NullPtr;
@@ -105,7 +105,7 @@ static inline PhaseShiftMgr_Error_t ClearPhaseShiftRequest(PhaseShiftRequest_t *
 
 //this is a helper function that is called in the main API 'createPhaseShiftRequest" to pack the 
 //provided inputs into a sendable command of the right format [phasesetword:8][opt:1][addrword:4]
-static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(PhaseShiftRequest_t *req)
+static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(volatile PhaseShiftRequest_t *req)
 {
     if (req->rc != Err_Ok) { return req->rc; }
 
@@ -136,23 +136,21 @@ static inline PhaseShiftMgr_Error_t BuildCommandfromRequest(PhaseShiftRequest_t 
 }
 
 //main API to create a phase shift command given a requested shift relative to the reference signal phase
-static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_deg, bool optBit, uint8_t unitAddressWord, PhaseShiftRequest_t *req)
+static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_deg, bool optBit, uint8_t unitAddressWord, volatile PhaseShiftRequest_t *req)
 {
     if (req == NULL) {
-        *req= InitNewPhaseShiftRequest(); 
+        InitNewPhaseShiftRequest(req); 
     }
 
-    PhaseShiftRequest_t *newReq = req;
-
     //clear it and restart if there's something wrong 
-    if (newReq->rc != Err_Ok) {
-        ClearPhaseShiftRequest(newReq);
+    if (req->rc != Err_Ok) {
+        ClearPhaseShiftRequest(req);
     }
 
     //store the details of the request
-    newReq->requestedShift_deg = _requestedShift_deg;
-    newReq->optBit = optBit;
-    newReq->unitAddressWord = unitAddressWord;
+    req->requestedShift_deg = _requestedShift_deg;
+    req->optBit = optBit;
+    req->unitAddressWord = unitAddressWord;
 
     //begin the calculation of the state. State is calculated from input degrees
     //from PE448 datasheet: 
@@ -160,23 +158,23 @@ static inline PhaseShiftRequest_t SetPhaseShiftRequest(double _requestedShift_de
     // 2. convert to binary state 146  → 01001001
     // LSB→MSB (205.3 deg setting = 2.8° + 22.5° + 180°)
     if (_requestedShift_deg < 0.0 || _requestedShift_deg >= 360.0) {
-        newReq->rc = Err_ShiftOutOfRange;
-        return *newReq; //return early
+        req->rc = Err_ShiftOutOfRange;
+        return *req; //return early
     }
 
     //1. calculate the state
-    newReq->phaseSetWord = (uint16_t)lround(_requestedShift_deg * numStatesPerDegPhaseRotation); //round up before truncating
+    req->phaseSetWord = (uint16_t)lround(_requestedShift_deg * numStatesPerDegPhaseRotation); //round up before truncating
 
     //max is 11111111
-    if (newReq->phaseSetWord > 255u) {
-        newReq->rc = Err_NoSuchState;
-        return *newReq; //return early 
+    if (req->phaseSetWord > 255u) {
+        req->rc = Err_NoSuchState;
+        return *req; //return early 
     }
 
     //convert phaseSetWord into an 8-bit binary string and store it starting at index 0 of PhaseSetWordStr
-    ConvertBinaryToASCII(newReq->phaseSetWord, newReq->PhaseSetWordStr);
+    ConvertBinaryToASCII(req->phaseSetWord, req->PhaseSetWordStr);
 
-    newReq->rc = BuildCommandfromRequest(newReq);
+    req->rc = BuildCommandfromRequest(req);
 
-    return *newReq;
+    return *req;
 }

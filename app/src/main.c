@@ -46,7 +46,7 @@ void pe448spisetup(void)
     // // now set and enable SPI1 to use master mode and 
     //set the idle state of the clock Low for CPOL = 0 ( TRM "The idle state of SCK must correspond to the polarity selected in the SPIx_CR1 register (by 
     // pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
-    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, 0, 1, SPI_CR1_LSBFIRST); 
+    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_8, 0, 1, SPI_CR1_LSBFIRST); 
     spi_set_data_size(SPI1, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
 
     spi_fifo_reception_threshold_16bit(SPI1); //make sure to capture all of the recieve bits 
@@ -55,7 +55,10 @@ void pe448spisetup(void)
 
 int main(void)
 {
-    PhaseShiftRequest_t req = InitNewPhaseShiftRequest();
+    
+    rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
+    volatile PhaseShiftRequest_t req;
+    InitNewPhaseShiftRequest(&req); 
 
     pe448spisetup();
     spi_enable(SPI1);
@@ -96,6 +99,8 @@ int main(void)
             req.rc = Err_PSResponse;
             continue;
         }
+
+        ClearPhaseShiftRequest(&req); 
 
         //need a debug function to later print the value in req.rc
     }

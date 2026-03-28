@@ -21,6 +21,7 @@
 
 void pe448spisetup(void)
 {
+
     //enable the SPI
     rcc_periph_clock_enable(RCC_SPI1);
     rcc_periph_clock_enable(RCC_GPIOA);
@@ -35,7 +36,7 @@ void pe448spisetup(void)
     gpio_set_af(SPI1_PORT, GPIO_AF0, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
 
     // // now set and enable SPI1 to use master mode
-    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, SPI_CR1_CPOL, SPI_CR1_CPHA, SPI_CR1_LSBFIRST);
+    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, 0, 0, SPI_CR1_LSBFIRST); //use SPI mode 0 to start sending the data on the rising edge of the clock 
 
     gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer
 }
@@ -74,12 +75,12 @@ int main(void)
         spi_send(SPI1, frame);
 
         //read back the received word to clear RXNE / capture response
-        req.phaseShifterResponse = spi_read(SPI1);
+        req.phaseShifterResponse = spi_read(SPI1); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
 
-        uint16_t expectedResponse = 1; //what is expected? 
-        if(req.phaseShifterResponse != expectedResponse) { 
-        break;
-        }
+        // uint16_t expectedResponse = 1; //what is expected? 
+        // if(req.phaseShifterResponse != expectedResponse) { 
+        // break;
+        // }
 
         //release chip select
         gpio_set(SPI1_PORT, SPI1_CS_PIN);

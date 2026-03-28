@@ -17,6 +17,9 @@
 #define SPI1_MISO_PIN  GPIO6 //incoming response
 #define SPI1_MOSI_PIN  GPIO7 //phase shift request cmd
 #define SPI1_CS_PIN    GPIO0 //nss pin
+#define SPI1_PS_PIN //what pin? The CPOL (clock polarity) bit controls the idle state value of 
+//the clock when no data is being transferred. If 
+//CPOL is reset, the SCK pin has a low-level idle state. If set, high 
 //this configuration is used when MCU is master, NSS signal driven manually with GPIO
 
 void pe448spisetup(void)
@@ -29,16 +32,27 @@ void pe448spisetup(void)
     //set CS high to prevent data transfer during configuration
     gpio_set(SPI1_PORT, SPI1_CS_PIN);
 
+    //need to set the ps pin high for serial communication 
+
     //now set the pin modes as outputs and AF as specified above
     gpio_mode_setup(SPI1_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
     gpio_mode_setup(SPI1_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI1_CS_PIN);
 
     gpio_set_af(SPI1_PORT, GPIO_AF0, SPI1_CLK_PIN | SPI1_MOSI_PIN | SPI1_MISO_PIN);
 
-    // // now set and enable SPI1 to use master mode
-    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, 0, 0, SPI_CR1_LSBFIRST); //use SPI mode 0 to start sending the data on the rising edge of the clock 
+        
+    gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer. " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
+// undesired data transmission might occur."
 
-    gpio_set(SPI1_PORT, SPI1_CS_PIN); //de-select chip to allow transfer
+    // // now set and enable SPI1 to use master mode and 
+    //set the idle state of the clock Low for CPOL = 0 ( TRM "The idle state of SCK must correspond to the polarity selected in the SPIx_CR1 register (by 
+// pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
+    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_128, 0, 1, SPI_CR1_LSBFIRST); 
+    spi_set_data_size(SPI1, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
+
+    spi_fifo_reception_threshold_16bit(SPI1); //make sure to capture all of the recieve bits 
+
+    
 }
 
 int main(void)
@@ -55,21 +69,22 @@ int main(void)
         uint8_t unitAddr = 0b0011;   // = 3
 
         ClearPhaseShiftRequest(&req);
-        SetPhaseShiftRequest(testPhaseShift, optBit, unitAddr, &req); //builds a command and gives it to the req->packedPhaseShiftCmd structure
+        
+        SetPhaseShiftRequest(testPhaseShift, optBit, unitAddr, &req);
 
-        //if there is an error, it is now stored in req.rc for later debug 
-        if (req.rc != Err_Ok) {
-            //need a debug command to print / flag the error later
-            continue;
-        }
+        if (req.rc != Err_Ok) continue; //builds a command and gives it to the req->packedPhaseShiftCmd structure
 
-        uint16_t frame = req.packedPhaseShiftCmd.packedCmdToSend;
+        uint16_t frame; 
 
-        //caculate chksm to check later
+        frame = req.packedPhaseShiftCmd.packedCmdToSend;
+        
+
+        //caculate chksm to checklater
         //not yet implemented
 
         //manual chip select active low
         gpio_clear(SPI1_PORT, SPI1_CS_PIN);
+
 
         //send the frame
         spi_send(SPI1, frame);
@@ -77,13 +92,17 @@ int main(void)
         //read back the received word to clear RXNE / capture response
         req.phaseShifterResponse = spi_read(SPI1); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
 
-        // uint16_t expectedResponse = 1; //what is expected? 
-        // if(req.phaseShifterResponse != expectedResponse) { 
-        // break;
-        // }
-
         //release chip select
         gpio_set(SPI1_PORT, SPI1_CS_PIN);
+
+        
+        // validate response
+        if (req.phaseShifterResponse != frame) {
+            req.rc = Err_PSResponse;
+            continue;
+        }
+
+        //need a debug function to later print the value in req.rc
     }
 
     return 0;

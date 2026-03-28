@@ -20,6 +20,7 @@ typedef enum {
     // // // Err_SpiCRC,
     // Err_UnitAddWord,
     Err_NoSuchState,
+    Err_PSResponse, 
     Err_ShiftOutOfRange,
     // Err_Count
 } PhaseShiftMgr_Error_t;
@@ -43,9 +44,9 @@ typedef struct PackedPhaseShiftCmd_t {
 //command structure used is defined in the PS datasheet:
  //https://www.mouser.ca/ProductDetail/pSemi/PE44820B-X?qs=Cb2nCFKsA8prCrkfl5FDIQ%3D%3D
 
-// 13 bits for the full, phase shift cmd, 
+// 13 bits for the full phase shift cmd 
 //of structure [PhaseSetWordStr][optBit][unitAddressWord]
-//program Word (LSB→MSB):  010010010 + 1100, OPT bit is synchronized to 90° bit 
+//e.g, program Word (LSB→MSB):  010010010 + 1100, OPT bit is synchronized to 90° bit 
 typedef struct PhaseShiftRequest_t {
     double requestedShift_deg;
     uint16_t phaseSetWord; //calculated from shift request

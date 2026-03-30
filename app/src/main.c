@@ -53,7 +53,7 @@ void pe448spisetup(void)
 
     gpio_mode_setup(SPI2_LE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI2_LE_PIN); //set latch enable (CS) as general output 
 
-    //set CS high to prevent data transfer during configuration
+    //set CS high to prevent data transfer
     gpio_set(SPI2_LE_PORT, SPI2_LE_PIN);
 
     gpio_set_af(SPI2_CLK_PORT, GPIO_AF0, SPI2_CLK_PIN); 
@@ -64,8 +64,8 @@ void pe448spisetup(void)
     // // now set and enable SPI2 to use master mode and 
     //set the idle state of the clock Low for CPOL = 0 ( TRM "The idle state of SCK must correspond to the polarity selected in the SPIx_CR1 register (by 
     // pulling up SCK if CPOL=1 or pulling down SCK if CPOL=0"
-    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 1, SPI_CR1_LSBFIRST); 
-    spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command size is 13 bits. 
+    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 1, SPI_CR1_LSBFIRST); // our Phase shifter expects CPHA = 1, CPOL = 0, and we want to send LSB first. Baudrate is set to 3MHz (48MHz/16) to keep the signal slow so we can see it 
+    spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command size is 13 bits. // I think we should pad it to be 16 bits. The Ps will filter them out in one example. 
     spi_fifo_reception_threshold_16bit(SPI2); //make sure to capture all of the recieve bits 
     
 }
@@ -74,54 +74,35 @@ int main(void)
 {
     
     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
-    volatile PhaseShiftRequest_t req;
-    InitNewPhaseShiftRequest(&req); 
 
     pe448spisetup();
 
-    gpio_clear(SPI2_LE_PORT, SPI2_LE_PIN); //SET LOW FOR TX " TRM It is recommended to enable the SPI slave before the master sends the clock. If not, 
-                                        // undesired data transmission might occur."
+    gpio_clear(SPI2_LE_PORT, SPI2_LE_PIN); //set the cs low before sending the clock to prevent tx" 
+                                       
 
     spi_enable(SPI2);
     
-    double testPhaseShift = 205.3;
+    double requestedShift_deg = 205.3;
     bool optBit = 0;
-    uint8_t unitAddr = 0b1100;   // = 3
-
-    SetPhaseShiftRequest(205.3, 0, 0b1100, &req);
+    uint8_t unitAddressWord = 0b1100; //address of the unit we're trying to control, 4 bits for up to 16 units.
+    
 
     while (1)
     {
 
-
-        // if (req.rc != Err_Ok) continue; //builds a command and gives it to the req->packedPhaseShiftCmd structure
-
-        uint16_t frame; 
-
-        frame = req.packedPhaseShiftCmd.packedCmdToSend;
-
-        //caculate chksm to checklater
-        //not yet implemented
+        uint16_t command = CreatePhaseRequest(requestedShift_deg, optBit, unitAddressWord);
 
         //send the frame
         //1001101000011
-        spi_send(SPI2, frame);
+        spi_send(SPI2, command);
 
         //read back the received word to clear RXNE / capture response
-        req.phaseShifterResponse = spi_read(SPI2); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
+        uint16_t phaseShifterResponse = spi_read(SPI2); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
+      
 
         //release chip select
-        gpio_set(SPI2_LE_PORT, SPI2_LE_PIN);
+        gpio_set(SPI2_LE_PORT, SPI2_LE_PIN); // set CS high to end the transmission, LE = latch enable. 
 
-        // validate response
-        if (req.phaseShifterResponse != frame) {
-            req.rc = Err_PSResponse;
-            continue;
-        }
-
-        // ClearPhaseShiftRequest(&req); 
-
-        //need a debug function to later print the value in req.rc
     }
 
     return 0;

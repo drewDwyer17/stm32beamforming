@@ -21,3 +21,14 @@ static uint16_t CreatePhaseRequest(double requestedShift_deg, bool optBit, uint8
 } 
 
 
+static uint16_t CreatePhaseRequestWithMMasks(double requestedShift_deg, bool optBit, uint8_t unitAddressWord)
+{
+    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
+
+    uint16_t fullcommand =
+        ((phaseSetWord & 0xFFu) << 5) |
+        (((uint16_t)optBit & 0x1u) << 4) |
+        (unitAddressWord & 0x0Fu);
+
+    return fullcommand;
+}

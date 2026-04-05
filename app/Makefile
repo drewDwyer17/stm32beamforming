@@ -4,9 +4,11 @@ PROJECT = stm32beamforming
 SHARED_DIR = ../common
 CFILES += src/main.c 
 
-CFILES += src/unitTests.c
-CFILES += src/phaseShiftMgr.c
-HFILES += include/PhaseShiftMgr.h
+CFILES += src/PinToggle.c
+CFILES += src/phaseShifter.c
+CFILES += src/vga.c
+HFILES += include/Vga.h
+HFILES += include/PhaseShifter.h
 
 
 DEVICE = stm32f030r8t6

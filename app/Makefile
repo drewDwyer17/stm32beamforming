@@ -12,7 +12,6 @@ HFILES += include/PhaseShifter.h
 
 
 DEVICE = stm32f030r8t6
-
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)
 INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))

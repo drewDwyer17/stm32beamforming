@@ -67,9 +67,7 @@ void pe448spisetup(void)
 
     //Note april 5 think i need to change the CPHA to 0 . 
 
-    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 1, SPI_CR1_LSBFIRST); // our Phase shifter expects CPHA = 1, CPOL = 0, and we want to send LSB first. Baudrate is set to 3MHz (48MHz/16) to keep the signal slow so we can see it 
-    spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command size is 13 bits. // I think we should pad it to be 16 bits. The Ps will filter them out in one example. 
-    spi_fifo_reception_threshold_16bit(SPI2); //make sure to capture all of the recieve bits 
+    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 0, SPI_CR1_LSBFIRST); //make sure to capture all of the recieve bits 
     
 }
 
@@ -85,23 +83,27 @@ int main(void)
 
     spi_enable(SPI2);
     
-    double requestedShift_deg = 205.3;
+    double requestedShift_deg = 201.2;
     bool optBit = 0;
     uint8_t unitAddressWord = 0b1100; //address of the unit we're trying to control, 4 bits for up to 16 units.
+    volatile uint16_t *response = NULL; 
     
 
     while (1)
     {
-        uint16_t command = CreatePhaseRequest(requestedShift_deg, optBit, unitAddressWord);
+        volatile uint16_t command = CreatePhaseRequestWithMMasks(requestedShift_deg, optBit, unitAddressWord);
         //send the frame
         //1001101000011
-        spi_send(SPI2, command);
+        
         //read back the received word to clear RXNE / capture response
-        uint16_t phaseShifterResponse = spi_read(SPI2); //SDO2 data changes on rising edge of CLK and is valid on falling edge of CLK.
-        //release chip select
-        gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); // set CS high to end the transmission, LE = latch enable. 
+        volatile uint16_t phaseShifterResponse =spi_xfer(SPI2, command);
+        *response = phaseShifterResponse;
+
+        break; //break after one command for now, just to test the communication.
+        // gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); // set CS high to end the transmission, LE = latch enable. 
 
     }
+     
 
     return 0;
 }

@@ -33,14 +33,12 @@ static uint16_t CreatePhaseRequestWithMMasks(double requestedShift_deg, bool opt
     return fullcommand;
 }
 
-/*
-Unit test: Sending a command via spi to the phase shifter, sample main function 
+//Unit test: Sending a command via spi to the phase shifter, sample main function 
 
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
-#include "src/PhaseShifter.c"
 #include <stdint.h>
 #include <libopencm3/stm32/timer.h>
 
@@ -83,7 +81,7 @@ void pe448spisetup(void)
     gpio_set_af(SPI2_PS_CLK_PORT, GPIO_AF0, SPI2_PS_CLK_PIN); 
     gpio_set_af(SPI2_PS_MOSI_PORT, GPIO_AF0, SPI2_PS_MOSI_PIN); 
     gpio_set_af(SPI2_PS_MISO_PORT, GPIO_AF0, SPI2_PS_MISO_PIN); 
-=
+
 
     spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command is 13 bits long. 
     spi_fifo_reception_threshold_16bit(SPI2);
@@ -107,49 +105,49 @@ void pe448spisetup(void)
       }                                                                                                                                                                                                                                                                                                                 
   }            
 
-int main(void)
-{
-    rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
+// int main(void)
+// {
+//     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
 
-    pe448spisetup();                                   
+//     pe448spisetup();                                   
 
-    spi_enable(SPI2);
+//     spi_enable(SPI2);
     
-    // double requestedShift_deg = 205.3;
-    // bool optBit = 0;
-    // uint8_t unitAddressWord = 0b0011; //address of the unit we're trying to control, 4 bits for up to 16 units.
+//     double requestedShift_deg = 205.3;
+//     bool optBit = 0;
+//     uint8_t unitAddressWord = 0b0011; //address of the unit we're trying to control, 4 bits for up to 16 units.
 
-    volatile uint16_t command = 0b0010000000000; 
-    volatile uint16_t phaseShifterResponse = 0;
+//     volatile uint16_t command = 0b0010000000000; 
+//     volatile uint16_t phaseShifterResponse = 0;
 
-    // uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
+//     uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
 
-    phaseSetWordLSBfirst = reverseBits(phaseSetWord);
-    UnitAdressWordLSBfirst = reverseBits(unitAddressWord);
+//     phaseSetWord = reverseBits(phaseSetWord); //reverse the bits of the phase set word to be LSB first
+//     unitAddressWord = reverseBits(unitAddressWord);
 
     
-    // command = (phaseSetWordLSBfirst << 5) | (optBit << 4) | unitAddressWordLSBfirst;
+//     // command = (phaseSetWordLSBfirst << 5) | (optBit << 4) | unitAddressWordLSBfirst;
 
-    while (1)
-    {
-        gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); //set the cs low
-        //send the frame
-        //1001101000011
-        //read back the received word to clear RXNE / capture response
-        spi_send(SPI2, command);
-        phaseShifterResponse =spi_read(SPI2);
-        // spi_clean_disable(SPI2);
-        gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
-        //then send another command. 
-        spi_send(SPI2, 0b0011111100000); //this shouldn't matter. Based on the datasheet, whatever we send fter LE goes high should be ignored. We can test this by sending
-         a different command after the first one and seeing if the response changes.
-         #oscilloscope readings confirm
+//     while (1)
+//     {
+//         gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); //set the cs low
+//         //send the frame
+//         //1001101000011
+//         //read back the received word to clear RXNE / capture response
+//         spi_send(SPI2, command);
+//         phaseShifterResponse =spi_read(SPI2);
+//         // spi_clean_disable(SPI2);
+//         gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
+//         //then send another command. 
+//         spi_send(SPI2, 0b0011111100000); //this shouldn't matter. Based on the datasheet, whatever we send fter LE goes high should be ignored. We can test this by sending
+//         //  a different command after the first one and seeing if the response changes.
+//         //  #oscilloscope readings confirm
          
-        break;
+//         break;
 
-    }
-    return 0;
-}
+//     }
+//     return 0;
+// }
 
 
 

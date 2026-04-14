@@ -33,8 +33,7 @@ static uint16_t CreatePhaseRequestWithMMasks(double requestedShift_deg, bool opt
     return fullcommand;
 }
 
-
-/* 
+/*
 Unit test: Sending a command via spi to the phase shifter, sample main function 
 
 
@@ -86,9 +85,9 @@ void pe448spisetup(void)
     gpio_set_af(SPI2_PS_MISO_PORT, GPIO_AF0, SPI2_PS_MISO_PIN); 
 =
 
-    spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command size is 13 bits. // I think we should pad it to be 16 bits. The Ps will filter them out in one example. 
+    spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command is 13 bits long. 
     spi_fifo_reception_threshold_16bit(SPI2);
-    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 0, SPI_CR1_LSBFIRST); //make sure to capture all of the recieve bits 
+    spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 0, SPI_CR1_MSBFIRST); //send MSB first. We've already flipped the command elements to LSB first as required during command construction. 
     
 }
 
@@ -96,6 +95,17 @@ void pe448spisetup(void)
 #define PE48820B_MAX_PHASE_SHIFT_DEG 360.0
 #define numStatesPerDegPhaseRotation (PE48820B_NUMSTATES / PE48820B_MAX_PHASE_SHIFT_DEG)
 
+
+//the data sheet wants us to send the command parts LSB-> MSB, but we can't just format the command and then flip it. The address word is still at the tail end. It is each of the elemnents that need flipping, not the cmd as a whole. 
+  void reverse_bits(char *bits) {
+      int i = 0, j = strlen(bits) - 1;
+      while (i < j) {
+      // Swap bits[i] and bits[j] for each bit
+          char bit = bits[i];                                                                                                                                                                                                                                                                                           
+          bits[i++] = bits[j];                                                                                                                                                                                                                                                                                          
+          bits[j--] = bit;                                                                                                                                                                                                                                                                                              
+      }                                                                                                                                                                                                                                                                                                                 
+  }            
 
 int main(void)
 {
@@ -113,8 +123,12 @@ int main(void)
     volatile uint16_t phaseShifterResponse = 0;
 
     // uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
+
+    phaseSetWordLSBfirst = reverseBits(phaseSetWord);
+    UnitAdressWordLSBfirst = reverseBits(unitAddressWord);
+
     
-    // command2 = (phaseSetWord << 5) | (optBit << 4) | unitAddressWord;
+    // command = (phaseSetWordLSBfirst << 5) | (optBit << 4) | unitAddressWordLSBfirst;
 
     while (1)
     {
@@ -137,7 +151,6 @@ int main(void)
     return 0;
 }
 
-*/
 
 
 

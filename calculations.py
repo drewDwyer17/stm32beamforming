@@ -1,4 +1,4 @@
-
+import math 
 def calculate_minimum_toggle_period():
     #calculate the period that we want to toggle at to achieve a maximum frequency of togglign pins 
     maximum_clock_speed = 48000000 #48MHz
@@ -17,20 +17,20 @@ def vga_cutoff_freq_lp_filter():
     signalFrequencyMOSI = 56179000000; # 5.617 mhz signal observed from oscilloscope 
     R7  = 4700 #ohms
     C13 =  2 #pF
-    cutOffFrequency = 1/(2*pi*R7*C13) 
+    cutOffFrequency = 1/(2*math.pi*R7*C13) 
     return cutOffFrequency; 
     
 
 
 if __name__ == "__main__":
-
+    
     # _minimal_toggle_period_in_ns = calculate_minimum_toggle_period()
     # print(f"the minimal toggle period is {_minimal_toggle_period_in_ns}s")
     #the minimal toggle period is 2.0833333333333335e-08s
     #-------------------------------------------------------------------
-    # VGA_MOSI_cutoffFreq = vga_cutoff_freq_lp_filter()
-    # print(f"cutoffFreq = {VGA_MOSI_cutoffFreq}")
-    # # cutoffFreq = 16.931376924669717 Mhz     
+    VGA_MOSI_cutoffFreq = vga_cutoff_freq_lp_filter()
+    print(f"cutoffFreq = {VGA_MOSI_cutoffFreq}")
+    # cutoffFreq = 16.931376924669717 Mhz     
 
 
 

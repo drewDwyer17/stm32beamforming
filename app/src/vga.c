@@ -35,7 +35,7 @@ Example base usage  (confirmed with testing April 13)
 //     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
 //     f0480spisetup();                                   
 //     spi_enable(SPI1);
-//     volatile SupportedAttenuationCommand_t  command = ATTEN_23DB; //try the max attenuation. //ATTEN_23DB = 0b01100000
+//     volatile SupportedAttenuationCommand_t command = ATTEN_23DB; //try the max attenuation. //ATTEN_23DB = 0b01100000
 //     volatile uint16_t response = 0;
 
 //     while (1)
@@ -48,27 +48,6 @@ Example base usage  (confirmed with testing April 13)
 //     }
 //     return 0;
 // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 */

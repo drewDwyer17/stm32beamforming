@@ -1,87 +1,48 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include <include/PhaseShifter.h>
 
-#define PE48820B_NUMSTATES 256u
-#define PE48820B_MAX_PHASE_SHIFT_DEG 360.0
-#define numStatesPerDegPhaseRotation (PE48820B_NUMSTATES / PE48820B_MAX_PHASE_SHIFT_DEG)
-
-
-// Easier way of doing it would just be  (the most simple working method) : 
-static uint16_t CreatePhaseRequest(double requestedShift_deg, bool optBit, uint8_t unitAddressWord)
+// The phase word and address field need bit order reversed before packing, see datasheet timing diagram and command structure.
+uint16_t reverseBits(uint16_t word, uint8_t numBits)
 {
+    uint16_t reversed = 0;
 
-    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
-    
-    int fullcommand = (phaseSetWord << 5) | (optBit << 4) | unitAddressWord;
+    for (uint8_t i = 0; i < numBits; i++) {
+        reversed = (uint16_t)((reversed << 1) | (word & 0x1u));
+        word >>= 1;
+    }
 
-    return fullcommand;
-} 
-
-
-static uint16_t CreatePhaseRequestWithMMasks(double requestedShift_deg, bool optBit, uint8_t unitAddressWord)
-{
-    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
-
-    uint16_t fullcommand =
-        ((phaseSetWord & 0xFFu) << 5) |
-        (((uint16_t)optBit & 0x1u) << 4) |
-        (unitAddressWord & 0x0Fu);
-
-    return fullcommand;
+    return reversed;
 }
 
-//Unit test: Sending a command via spi to the phase shifter, sample main function 
+uint16_t MakePSCommand(double requestedShift_deg, bool optBit, uint8_t unitAddressWord)
+{
+    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
+    phaseSetWord = reverseBits(phaseSetWord, 8); // reverse the 8-bit phase field
+    unitAddressWord = reverseBits(unitAddressWord, 4);
+    uint16_t command =((phaseSetWord & 0xFFu) << 5) | ((optBit & 0x1u) << 4) |(unitAddressWord & 0x0Fu);
 
-
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/spi.h>
-#include <stdint.h>
-#include <libopencm3/stm32/timer.h>
-
-#define SPI2_PS_LE_PORT GPIOB//treat the LE signal as the chip select 
-#define SPI2_PS_LE_PIN GPIO12 
-
-#define SPI2_PS_SP_PORT GPIOC
-#define SPI2_PS_SP_PIN GPIO10
-
-#define SPI2_PS_MISO_PORT GPIOC
-#define SPI2_PS_MISO_PIN GPIO11//(SD01, d6 on PS side)
-#define SPI2_PS_CLK_PORT GPIOB
-#define SPI2_PS_CLK_PIN GPIO13
-
-#define SPI2_PS_MOSI_PORT GPIOB
-#define SPI2_PS_MOSI_PIN GPIO15
+    return command;
+} 
 
 void pe448spisetup(void)
 {
-    //enable the SPI
     rcc_periph_clock_enable(RCC_SPI2);
-    rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOB);
-    rcc_periph_clock_enable(RCC_GPIOC); 
+    rcc_periph_clock_enable(RCC_GPIOA); 
+    rcc_periph_clock_enable(RCC_GPIOB); //for CLK, MOSI, and LE
+    rcc_periph_clock_enable(RCC_GPIOC); //for MISO and SP (serial progrmaming select pin)
 
-
-    //need to set the PS SP pin HIGH for serial communication 
     gpio_mode_setup(SPI2_PS_SP_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI2_PS_SP_PIN); 
-    gpio_set(SPI2_PS_SP_PORT, SPI2_PS_SP_PIN); //set SP high for serial communication 
+    gpio_set(SPI2_PS_SP_PORT, SPI2_PS_SP_PIN); //PS SP pin HIGH for serial communication  
 
-    //now set the pin modes as outputs and AF as specified above
+    //now set the pin modes as outputs and AF 
     gpio_mode_setup(SPI2_PS_CLK_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI2_PS_CLK_PIN); 
     gpio_mode_setup(SPI2_PS_MISO_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI2_PS_MISO_PIN); 
     gpio_mode_setup(SPI2_PS_MOSI_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI2_PS_MOSI_PIN); 
 
-    gpio_mode_setup(SPI2_PS_LE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI2_PS_LE_PIN); //set latch enable (CS) as general output 
-
-    
-
+    //set latch enable (CS) as general output, Alternate functions for SPI bus lines
+    gpio_mode_setup(SPI2_PS_LE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI2_PS_LE_PIN);  
     gpio_set_af(SPI2_PS_CLK_PORT, GPIO_AF0, SPI2_PS_CLK_PIN); 
     gpio_set_af(SPI2_PS_MOSI_PORT, GPIO_AF0, SPI2_PS_MOSI_PIN); 
     gpio_set_af(SPI2_PS_MISO_PORT, GPIO_AF0, SPI2_PS_MISO_PIN); 
-
 
     spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command is 13 bits long. 
     spi_fifo_reception_threshold_16bit(SPI2);
@@ -89,65 +50,41 @@ void pe448spisetup(void)
     
 }
 
-#define PE48820B_NUMSTATES 256u
-#define PE48820B_MAX_PHASE_SHIFT_DEG 360.0
-#define numStatesPerDegPhaseRotation (PE48820B_NUMSTATES / PE48820B_MAX_PHASE_SHIFT_DEG)
+/*PS Unit Tests
+Example base usage (Reproduce datasheet PS & Spi timing diagram) 
 
+int main(void)
+{
+    rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
+    pe448spisetup();                                   
+    spi_enable(SPI2);
 
-//the data sheet wants us to send the command parts LSB-> MSB, but we can't just format the command and then flip it. The address word is still at the tail end. It is each of the elemnents that need flipping, not the cmd as a whole. 
-  void reverse_bits(char *bits) {
-      int i = 0, j = strlen(bits) - 1;
-      while (i < j) {
-      // Swap bits[i] and bits[j] for each bit
-          char bit = bits[i];                                                                                                                                                                                                                                                                                           
-          bits[i++] = bits[j];                                                                                                                                                                                                                                                                                          
-          bits[j--] = bit;                                                                                                                                                                                                                                                                                              
-      }                                                                                                                                                                                                                                                                                                                 
-  }            
+    #optional volatile uint16_t SingleBitCommand= 0b0010000000 for seeing unit impulse like signal propogate
+    volatile uint16_t phaseShifterResponse = 0;
 
-// int main(void)
-// {
-//     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
+    # create command 
+    double requestedShift_deg = 205.3;
+    bool optBit = 0;
+    uint8_t unitAddressWord = 0b0011; //address of the unit we're trying to control, 4 bits for up to 16 units.
+    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
+    phaseSetWord = reverseBits(phaseSetWord); //reverse the bits of the phase set word to be LSB first
+    unitAddressWord = reverseBits(unitAddressWord);
+    command = (phaseSetWord << 5) | (optBit << 4) | unitAddressWord;
 
-//     pe448spisetup();                                   
+    while (1)
+    {
+        gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); //set the cs low
+        spi_send(SPI2, command);
+        phaseShifterResponse =spi_read(SPI2);
+        gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
+        //then send another command.
+        spi_send(SPI2, 0b0011111100000); //this shouldn't matter. Based on the datasheet, whatever we send after LE goes high should be ignored. Tested by sending a command after LE goes high and ensuring that the response is not affected
+        break;
+    }
+    return 0;
+}
 
-//     spi_enable(SPI2);
-    
-//     double requestedShift_deg = 205.3;
-//     bool optBit = 0;
-//     uint8_t unitAddressWord = 0b0011; //address of the unit we're trying to control, 4 bits for up to 16 units.
-
-//     volatile uint16_t command = 0b0010000000000; 
-//     volatile uint16_t phaseShifterResponse = 0;
-
-//     uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
-
-//     phaseSetWord = reverseBits(phaseSetWord); //reverse the bits of the phase set word to be LSB first
-//     unitAddressWord = reverseBits(unitAddressWord);
-
-    
-//     // command = (phaseSetWordLSBfirst << 5) | (optBit << 4) | unitAddressWordLSBfirst;
-
-//     while (1)
-//     {
-//         gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); //set the cs low
-//         //send the frame
-//         //1001101000011
-//         //read back the received word to clear RXNE / capture response
-//         spi_send(SPI2, command);
-//         phaseShifterResponse =spi_read(SPI2);
-//         // spi_clean_disable(SPI2);
-//         gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
-//         //then send another command. 
-//         spi_send(SPI2, 0b0011111100000); //this shouldn't matter. Based on the datasheet, whatever we send fter LE goes high should be ignored. We can test this by sending
-//         //  a different command after the first one and seeing if the response changes.
-//         //  #oscilloscope readings confirm
-         
-//         break;
-
-//     }
-//     return 0;
-// }
+*/
 
 
 

@@ -65,11 +65,8 @@ int main(void)
     # create command 
     double requestedShift_deg = 205.3;
     bool optBit = 0;
-    uint8_t unitAddressWord = 0b0011; //address of the unit we're trying to control, 4 bits for up to 16 units.
-    uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
-    phaseSetWord = reverseBits(phaseSetWord); //reverse the bits of the phase set word to be LSB first
-    unitAddressWord = reverseBits(unitAddressWord);
-    command = (phaseSetWord << 5) | (optBit << 4) | unitAddressWord;
+    uint8_t unitAddressWord = 0b0011;
+    uint16_t command = MakePSCommand(requestedShift_deg, optBit, unitAddressWord);
 
     while (1)
     {

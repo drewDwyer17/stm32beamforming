@@ -19,7 +19,28 @@ def vga_cutoff_freq_lp_filter():
     C13 =  2 #pF
     cutOffFrequency = 1/(2*math.pi*R7*C13) 
     return cutOffFrequency; 
-    
+
+
+# Calculate the phase shift needed between adjacent array elements
+# to maximize gain for a signal arriving from a given angle.
+
+# angle_deg: arrival angle in degrees
+# rx_el_arr_spacing_d: spacing between adjacent antenna elements in meters
+# signalFrequency: signal frequency in Hz
+#depending on which element you are receiving at (index in the array of elements), you'll need to scale this required phase shift, because the distance traveled 
+# will increase by L for each element you are receiving at. 
+
+# returns: phase shift in radians
+def calculateShiftForMaxGainAtGivenAngle(angle_deg, rx_el_arr_spacing_d, signalFrequency):
+    angle_rad = math.radians(angle_deg)
+    # extra distance to next element
+    L = rx_el_arr_spacing_d * math.sin(angle_rad)
+    speedOfLight = 3e8
+    timeDelayToReachNextArrEl = L / speedOfLight
+    phaseShift_to_maximize_gain = 2 * math.pi * signalFrequency * timeDelayToReachNextArrEl
+    phaseShift_to_maximize_gain_deg = phaseShift_to_maximize_gain*/(2*pi)
+
+    return phaseShift_to_maximize_gain_deg
 
 
 if __name__ == "__main__":

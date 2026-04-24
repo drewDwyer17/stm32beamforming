@@ -1,6 +1,8 @@
 #define SIGNOFLIFEPORT GPIOA
 #define SIGNOFLIFEPIN GPIO9   // PA9
 
+#include <stdint.h>
+#include <libopencm3/stm32/gpio.h>
 //See UnitTests -> RX1_UnitTest1
 
 // Function for geenrating a signal by toggling a GPIO pin at maximum speed, by setting 

@@ -7,6 +7,7 @@ CFILES += src/main.c
 CFILES += src/PinToggle.c
 CFILES += src/phaseShifter.c
 CFILES += src/vga.c
+CFILES += src/UnitTests/RX1UnitTests
 HFILES += include/Vga.h
 HFILES += include/PhaseShifter.h
 

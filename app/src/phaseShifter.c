@@ -1,5 +1,7 @@
 #include <include/PhaseShifter.h>
 
+//See UnitTests -> RX1_UnitTest 2
+
 // The phase word and address field need bit order reversed before packing, see datasheet timing diagram and command structure.
 uint16_t reverseBits(uint16_t word, uint8_t numBits)
 {
@@ -49,40 +51,6 @@ void pe448spisetup(void)
     spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 0, SPI_CR1_MSBFIRST); //send MSB first. We've already flipped the command elements to LSB first as required during command construction. 
     
 }
-
-/*PS Unit Tests
-Example base usage (Reproduce datasheet PS & Spi timing diagram) 
-
-int main(void)
-{
-    rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
-    pe448spisetup();                                   
-    spi_enable(SPI2);
-
-    #optional volatile uint16_t SingleBitCommand= 0b0010000000 for seeing unit impulse like signal propogate
-    volatile uint16_t phaseShifterResponse = 0;
-
-    # create command 
-    double requestedShift_deg = 205.3;
-    bool optBit = 0;
-    uint8_t unitAddressWord = 0b0011;
-    uint16_t command = MakePSCommand(requestedShift_deg, optBit, unitAddressWord);
-
-    while (1)
-    {
-        gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); //set the cs low
-        spi_send(SPI2, command);
-        phaseShifterResponse =spi_read(SPI2);
-        gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
-        //then send another command.
-        spi_send(SPI2, 0b0011111100000); //this shouldn't matter. Based on the datasheet, whatever we send after LE goes high should be ignored. Tested by sending a command after LE goes high and ensuring that the response is not affected
-        break;
-    }
-    return 0;
-}
-
-*/
-
 
 
 

@@ -29,7 +29,6 @@ void f0480spisetup(void)
 
 /* Unit Testing 
 Example base usage  (confirmed with testing April 13)
-
 // int main(void) 
 // {
 //     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 
@@ -48,6 +47,5 @@ Example base usage  (confirmed with testing April 13)
 //     }
 //     return 0;
 // }
-
 
 */

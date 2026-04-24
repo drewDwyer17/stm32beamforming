@@ -1,0 +1,15 @@
+{
+    "terminal.integrated.profiles.windows": {
+        "Git Bash": {
+            "path": "C:\\Program Files\\Git\\bin\\bash.exe"
+        },
+        "MSYS2 MINGW64": {
+            "path": "C:\\msys64\\msys2_shell.cmd",
+            "args": ["-mingw64", "-defterm", "-here"]
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "C_Cpp.default.compilerPath": "C:\\arm-gnu-toolchain-15.2.rel1-mingw-w64-x86_64-arm-none-eabi\\bin\\arm-none-eabi-gcc.exe",
+    "cortex-debug.JLinkGDBServerPath": "C:\\Program Files\\SEGGER\\JLink\\JLinkGDBServerCL.exe"
+    
+}

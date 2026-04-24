@@ -1,7 +1,7 @@
 #define SIGNOFLIFEPORT GPIOA
 #define SIGNOFLIFEPIN GPIO9   // PA9
 
-
+//See UnitTests -> RX1_UnitTest1
 
 // Function for geenrating a signal by toggling a GPIO pin at maximum speed, by setting 
 //and resetting the BSRR register for the pin, and probing the pin with an oscilloscope

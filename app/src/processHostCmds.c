@@ -28,10 +28,9 @@ host_uart_rc_t  processExtractedCmdStr(char *extractedCmdLine,
         *attenuation passed by host as a character, but we want it as an integer. extract the char, interpret as int type, and then switch to supported attenuation cmd
         *only the supported values can be processed 
         */
+        uint8_t idValue = 0u;
         uint8_t attValue = 0u;
-        if (sscanf(extractedCmdLine, "ID.%*hhu:ATT.%hhu", &attValue) != 1) { 
-            //hh: "length modifier" -- expect 2 char
-            //.u: conversion specifier - interpret and store val as an unsigned decimal integer
+        if (sscanf(extractedCmdLine, "ID.%hhu:ATT.%hhu", &idValue, &attValue) != 2) { 
             return MISSING_OR_INVALID_ATTRIBUTE;
         }
         switch (attValue) {
@@ -72,11 +71,13 @@ host_uart_rc_t  processExtractedCmdStr(char *extractedCmdLine,
 
     case HOST_CMD_PS: { 
         //expected PS cmd format : ID.1:DEG.250:OPT.0:UNIT.12
+        uint8_t dummyId = 0u;
         if (sscanf(extractedCmdLine,
-                "ID.%*hhu:DEG.%f:OPT.%hhu:UNIT.%hhu",
+                "ID.%hhu:DEG.%f:OPT.%hhu:UNIT.%hhu",
+                &dummyId,
                 &processedCmd->deg,
                 &processedCmd->optBit,
-                &processedCmd->unit) != 3)
+                &processedCmd->unit) != 4)
         {
             return MISSING_OR_INVALID_ATTRIBUTE;
         }
@@ -88,12 +89,14 @@ host_uart_rc_t  processExtractedCmdStr(char *extractedCmdLine,
         //expected cmd format:ID.2:ATT.23:DEG.250:OPT.0:UNIT.12
         uint8_t attValue = 0u;
 
+        uint8_t dummyId = 0u;
         if (sscanf(extractedCmdLine,
-                "ID.%*hhu:ATT.%hhu:DEG.%f:OPT.%hhu:UNIT.%hhu",
+                "ID.%hhu:ATT.%hhu:DEG.%f:OPT.%hhu:UNIT.%hhu",
+                &dummyId,
                 &attValue,
                 &processedCmd->deg,
                 &processedCmd->optBit,
-                &processedCmd->unit) != 4)
+                &processedCmd->unit) != 5)
         {
             return MISSING_OR_INVALID_ATTRIBUTE;
         }
@@ -131,7 +134,9 @@ host_uart_rc_t  processExtractedCmdStr(char *extractedCmdLine,
         spi_send(SPI2, psCmd);
         spi_send(SPI1, processedCmd->att); //vga cmd = supportedAttenuationCmd_t
         return OK;
-    }
+    default:
+        return INVALID_COMMAND_ID;
+}
 }
 
 /*

@@ -34,11 +34,7 @@
 extern uint8_t uart_rx_process_buf[DMA_MAX_RX_CMD_LENGTH];
 extern volatile bool uart_rx_data_pending;
 
-static void uart_dma_rx_init(void);
-static void init_uart_rx(void);
-static void restart_dma_rx(void);
-void usart1_isr(void);
-void dma1_channel2_3_dma2_channel1_2_isr(void);
+void init_uart_rx(void);
 void deinit_uart_rx(void);
 
 #endif

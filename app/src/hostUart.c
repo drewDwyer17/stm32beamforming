@@ -19,7 +19,9 @@ sending data and we can process it.
 #include <include/HostUart.h>
 #include <include/ProcessHostCmds.h>
 #include <libopencm3/stm32/dma.h>
+#include <string.h>
 
+static uint8_t uart_rx_dma_buf[DMA_MAX_RX_CMD_LENGTH];
 uint8_t uart_rx_process_buf[DMA_MAX_RX_CMD_LENGTH];
 volatile bool uart_rx_data_pending = false;
 
@@ -82,7 +84,7 @@ static void restart_dma_rx(void)
     dma_enable_channel(UART_RX_DMA, UART_RX_DMA_CHANNEL);
 }
 
-static void init_uart_rx(void)
+void init_uart_rx(void)
 {
      //Uart config for RS485-UART reception
     rcc_periph_clock_enable(RCC_USART1);

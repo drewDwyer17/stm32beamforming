@@ -29,7 +29,7 @@
 #define SPI2_PS_MOSI_PIN GPIO15
 
 uint16_t reverseBits(uint16_t word, uint8_t numBits);
-uint16_t MakePSCommand(double requestedShift_deg, bool optBit, uint8_t unitAddressWord);
+uint16_t MakePSCommand(float requestedShift_deg, bool optBit, uint8_t unitAddressWord);
 void pe448spisetup(void);
 
 #endif

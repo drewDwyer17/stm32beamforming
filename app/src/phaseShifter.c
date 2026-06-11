@@ -15,7 +15,7 @@ uint16_t reverseBits(uint16_t word, uint8_t numBits)
     return reversed;
 }
 
-uint16_t MakePSCommand(double requestedShift_deg, bool optBit, uint8_t unitAddressWord)
+uint16_t MakePSCommand(float requestedShift_deg, bool optBit, uint8_t unitAddressWord)
 {
     uint16_t phaseSetWord = (uint16_t)lround(requestedShift_deg * numStatesPerDegPhaseRotation);
     phaseSetWord = reverseBits(phaseSetWord, 8); // reverse the 8-bit phase field
@@ -49,34 +49,5 @@ void pe448spisetup(void)
     spi_set_data_size(SPI2, SPI_CR2_DS_13BIT); //our command is 13 bits long. 
     spi_fifo_reception_threshold_16bit(SPI2);
     spi_init_master(SPI2, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0, 0, SPI_CR1_MSBFIRST); //send MSB first. We've already flipped the command elements to LSB first as required during command construction. 
-    
+    gpio_clear(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

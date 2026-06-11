@@ -19,6 +19,9 @@ def vga_cutoff_freq_lp_filter():
     C13 =  2 #pF
     cutOffFrequency = 1/(2*math.pi*R7*C13) 
     return cutOffFrequency; 
+<<<<<<< HEAD
+    
+=======
 
 
 # Calculate the phase shift needed between adjacent array elements
@@ -41,6 +44,7 @@ def calculateShiftForMaxGainAtGivenAngle(angle_deg, rx_el_arr_spacing_d, signalF
     phaseShift_to_maximize_gain_deg = phaseShift_to_maximize_gain*/(2*pi)
 
     return phaseShift_to_maximize_gain_deg
+>>>>>>> cc28711a7af8884db66dd5b8143abfdf2dd8f439
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+=
+
 #define SIGNOFLIFEPORT GPIOA
 #define SIGNOFLIFEPIN GPIO9   // PA9
 

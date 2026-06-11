@@ -92,7 +92,6 @@ int main(void)
     return 0;
 }
 
-
 //Unit test 4: sending a command to the phase shifter and the VGA at the same time. 
 /* 
 int main(void) 

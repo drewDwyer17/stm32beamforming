@@ -14,13 +14,12 @@ HFILES += include/HostUart.h
 HFILES += include/ProcessHostCmds.h
 
 
-DEVICE = stm32f030r8t6
+DEVICE = stm32f072r8t6
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)
 INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))
 INCLUDES += -Iinclude
 OPENCM3_DIR=../libopencm3
-OPENCM3_DEFS = -DSTM32F0
 
 include $(OPENCM3_DIR)/mk/genlink-config.mk
 include ../rules.mk

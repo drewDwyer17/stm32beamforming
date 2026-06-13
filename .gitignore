@@ -1,10 +1,4 @@
 build/
 *.o
 *.elf
-<<<<<<< HEAD
 libopencm3/
-=======
-libopencm3/
-__pycache__/
-*.pyc
->>>>>>> cc28711a7af8884db66dd5b8143abfdf2dd8f439

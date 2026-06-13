@@ -18,15 +18,13 @@
 #define SPI2_PS_LE_PIN GPIO12 
 
 #define SPI2_PS_SP_PORT GPIOC
-#define SPI2_PS_SP_PIN GPIO10
+#define SPI2_PS_SP_PIN GPIO7 //PC7
 
-#define SPI2_PS_MISO_PORT GPIOC
-#define SPI2_PS_MISO_PIN GPIO11//(SD01, d6 on PS side)
 #define SPI2_PS_CLK_PORT GPIOB
-#define SPI2_PS_CLK_PIN GPIO13
+#define SPI2_PS_CLK_PIN GPIO13 //PB13
 
 #define SPI2_PS_MOSI_PORT GPIOB
-#define SPI2_PS_MOSI_PIN GPIO15
+#define SPI2_PS_MOSI_PIN GPIO15 //phaseSI
 
 uint16_t reverseBits(uint16_t word, uint8_t numBits);
 uint16_t MakePSCommand(float requestedShift_deg, bool optBit, uint8_t unitAddressWord);

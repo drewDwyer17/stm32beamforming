@@ -44,7 +44,7 @@
 // D6 = H
 // D7 = x
 
-typedef enum SupportedAttenuationCommand
+typedef enum 
 {
     ATTEN_0DB  = 0b00000000,
     ATTEN_1DB  = 0b00000100,
@@ -54,8 +54,9 @@ typedef enum SupportedAttenuationCommand
     ATTEN_16DB = 0b01000000,
     ATTEN_22DB = 0b01011000,
     ATTEN_23DB = 0b01100000
-} SupportedAttenuationCommand_t;
+} SupportedAttenuationCommand_e;
 
+typedef SupportedAttenuationCommand_e SupportedAttenuationCommand_t;
 
 void f0480spisetup(void);
 

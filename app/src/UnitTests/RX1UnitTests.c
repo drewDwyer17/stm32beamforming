@@ -94,7 +94,7 @@ int main(void)
 
 
 //Unit test 4: sending a command to the phase shifter and the VGA at the same time. 
-/* 
+
 int main(void) 
 {
     rcc_clock_setup_in_hse_8mhz_out_48mhz(); 

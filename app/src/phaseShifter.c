@@ -1,4 +1,5 @@
 #include <include/PhaseShifter.h>
+#include <include/PhaseStateEnum.h>
 
 //See UnitTests -> RX1_UnitTest 2
 
@@ -15,12 +16,15 @@ uint16_t reverseBits(uint16_t word, uint8_t numBits)
     return reversed;
 }
 
-uint16_t MakePSCommand(float requestedShift_deg, bool optBit, uint8_t unitAddressWord)
+uint16_t MakePSCommand(phaseState_e stateword, uint8_t unitAddressWord)
 {
-    uint16_t phaseSetWord = (uint16_t)lroundf(requestedShift_deg * numStatesPerDegPhaseRotation);
-    phaseSetWord = reverseBits(phaseSetWord, 8); // reverse the 8-bit phase field
-    unitAddressWord = reverseBits(unitAddressWord, 4);
-    uint16_t command =((phaseSetWord & 0xFFu) << 5) | ((optBit & 0x1u) << 4) |(unitAddressWord & 0x0Fu);
+    //[reversedStateWOrd][optBit][reversedAddress]
+    
+    bool optBit = (stateword & 0b100000000); 
+    uint8_t stateWordMasked = stateword & (0b011111111); 
+    stateWordMasked = reverseBits((uint16_t)stateWordMasked, 8); // reverse the 8-bit phase field
+    unitAddressWord = reverseBits(unitAddressWord, 4); //default to using the first address,
+    uint16_t command =((stateWordMasked & 0xFFu) << 5) | ((optBit & 0x1u) << 4) |(unitAddressWord & 0x0Fu);
 
     return command;
 } 

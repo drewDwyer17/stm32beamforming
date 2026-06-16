@@ -9,10 +9,9 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/timer.h>
+#include <include/PhaseStateEnum.h>
 
-#define PE48820B_NUMSTATES 256u
-#define PE48820B_MAX_PHASE_SHIFT_DEG 360u
-#define numStatesPerDegPhaseRotation (float)(PE48820B_NUMSTATES / PE48820B_MAX_PHASE_SHIFT_DEG)
+
 
 #define SPI2_PS_LE_PORT GPIOB//treat the LE signal as the chip select 
 #define SPI2_PS_LE_PIN GPIO12 
@@ -29,7 +28,6 @@
 #define SPI2_PS_MOSI_PIN GPIO15
 
 uint16_t reverseBits(uint16_t word, uint8_t numBits);
-uint16_t MakePSCommand(float requestedShift_deg, uint8_t optBit, uint8_t unitAddressWord);
+uint16_t MakePSCommand(optimizedPhaseState_e phaseState, uint8_t unitAddressWord);
 void pe448spisetup(void);
-
 #endif

@@ -1,2 +1,2 @@
 ﻿# stm32beamforming
- git clone --recurse-submodules https://github.com/your-user/stm32beamforming.git
+ git clone --recurse-submodules https://github.com/drewDwyer17/stm32beamforming.git

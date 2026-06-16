@@ -7,12 +7,13 @@ CFILES += src/main.c
 CFILES += src/PinToggle.c
 CFILES += src/phaseShifter.c
 CFILES += src/vga.c
+CFILES += src/beamformerCan.c
 CFILES += src/UnitTests/RX1UnitTests.c
 HFILES += include/Vga.h
 HFILES += include/PhaseShifter.h
 
 
-DEVICE = stm32f030r8t6
+DEVICE = stm32f072r8t6
 # You shouldn't have to edit anything below here.
 VPATH += $(SHARED_DIR)
 INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))

@@ -8,7 +8,7 @@
             ],
             "defines": [
                 "STM32F0",
-                "STM32F030C8"
+                "STM32F072R8"
             ],
             "compilerPath": "C:\\arm-gnu-toolchain-15.2.rel1-mingw-w64-x86_64-arm-none-eabi\\bin\\arm-none-eabi-gcc.exe",
             "cStandard": "c17",

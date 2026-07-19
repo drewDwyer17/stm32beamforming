@@ -50,5 +50,8 @@ int main(void)
         gpio_set(SPI2_PS_LE_PORT, SPI2_PS_LE_PIN); 
         break;
     }
+    
+    while(1);
+    
     return 0;
 }

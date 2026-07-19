@@ -17,8 +17,6 @@ void f0480spisetup(void)
     gpio_mode_setup(SPI1_VGA_MISO_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_VGA_MISO_PIN);
     gpio_mode_setup(SPI1_VGA_MOSI_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SPI1_VGA_MOSI_PIN);
 
-    gpio_mode_setup(SPI1_VGA_CSB_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SPI1_VGA_CSB_PIN); // set chip select as general output
-
     gpio_set_af(SPI1_VGA_CLK_PORT, GPIO_AF0, SPI1_VGA_CLK_PIN);
     gpio_set_af(SPI1_VGA_MOSI_PORT, GPIO_AF0, SPI1_VGA_MOSI_PIN);
     gpio_set_af(SPI1_VGA_MISO_PORT, GPIO_AF0, SPI1_VGA_MISO_PIN);

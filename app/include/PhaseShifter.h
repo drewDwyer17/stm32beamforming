@@ -12,7 +12,7 @@
 
 #define PE48820B_NUMSTATES 256u
 #define PE48820B_MAX_PHASE_SHIFT_DEG 360u
-#define numStatesPerDegPhaseRotation (float)(PE48820B_NUMSTATES / PE48820B_MAX_PHASE_SHIFT_DEG)
+#define numStatesPerDegPhaseRotation ((float)PE48820B_NUMSTATES / (float)PE48820B_MAX_PHASE_SHIFT_DEG)
 
 #define SPI2_PS_LE_PORT GPIOB//treat the LE signal as the chip select 
 #define SPI2_PS_LE_PIN GPIO12 
